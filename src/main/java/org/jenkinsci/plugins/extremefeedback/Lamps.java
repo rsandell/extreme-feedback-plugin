@@ -114,15 +114,9 @@ public class Lamps extends Plugin {
         this.lamps = lamps;
     }
 
-    public Set<String> getJobs() {
-        Set<String> jobs = Sets.newHashSet();
-        for (Lamp lamp : lamps) {
-            jobs.addAll(lamp.getJobs());
-        }
-        return jobs;
-    }
 
-    public Set<Lamp> getLampsContainingJob(String jobName) {
+
+    /*public Set<Lamp> getLampsContainingJob(String jobName) {
         Set<Lamp> activeLamps = Sets.newHashSet();
         for (Lamp lamp : lamps) {
             if (lamp.getJobs().contains(jobName)) {
@@ -130,9 +124,23 @@ public class Lamps extends Plugin {
             }
         }
         return activeLamps;
+    }*/
+
+    public static Set<Lamp> addLampByIpAddress(Set<Lamp> lamps, String ipAddress) {
+        Set<Lamp> before = ImmutableSet.copyOf(lamps);
+        Set<Lamp> after = ImmutableSet.copyOf(addLampByIp(lamps, ipAddress));
+        if (before != after) {
+            return after;
+        } else {
+            return null;
+        }
     }
 
     public Set<Lamp> addLampByIp(final String ipAddress) {
+        return addLampByIp(this.lamps, ipAddress);
+    }
+
+    public static Set<Lamp> addLampByIp(final Set<Lamp> lamps, final String ipAddress) {
         ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
         ListenableFuture<String> listenableFuture = service.submit(new LampConfirmCallable(ipAddress));
         Futures.addCallback(listenableFuture, new FutureCallback<String>() {
@@ -161,6 +169,10 @@ public class Lamps extends Plugin {
     }
 
     public Map<String, Lamp> getLampsAsMap() {
+        return getLampsAsMap(this.lamps);
+    }
+
+    public static Map<String, Lamp> getLampsAsMap(Set<Lamp> lamps) {
         Map<String, Lamp> result = Maps.newHashMap();
         for (Lamp lamp : lamps) {
             result.put(lamp.getMacAddress(), lamp);
@@ -171,4 +183,9 @@ public class Lamps extends Plugin {
     public EventBus getEventBus() {
         return eventBus;
     }
+
+    public static Lamps getInstance() {
+        return Jenkins.getInstance().getPlugin(Lamps.class);
+    }
+
 }

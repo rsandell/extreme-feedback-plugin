@@ -8,10 +8,7 @@ import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.jenkinsci.plugins.extremefeedback.model.JenkinsEvent;
-import org.jenkinsci.plugins.extremefeedback.model.Lamp;
-import org.jenkinsci.plugins.extremefeedback.model.States;
-import org.jenkinsci.plugins.extremefeedback.model.UdpMessageSender;
+import org.jenkinsci.plugins.extremefeedback.model.*;
 
 import java.util.Set;
 import java.util.logging.Logger;
@@ -23,12 +20,12 @@ public class XfRunListener extends RunListener<AbstractBuild> {
 
     @Override
     public void onCompleted(AbstractBuild run, TaskListener listener) {
-        Lamps plugin = Jenkins.getInstance().getPlugin(Lamps.class);
-        Set<String> jobs = plugin.getJobs();
+        Lamps plugin = Lamps.getInstance();
+        Set<String> jobs = LampProvider.getAllJobs();
 
         if (jobs.contains(run.getParent().getName())) {
             Result result = run.getResult();
-            Set<Lamp> activeLamps = plugin.getLampsContainingJob(run.getParent().getName());
+            Set<Lamp> activeLamps = LampProvider.getAllLampsContainingJob(run.getParent().getName());
             for (Lamp lamp : activeLamps) {
                 String jsonColor = buildColorJson(States.resultColorMap.get(result).toString(), lamp, false);
                 plugin.getEventBus().post(new JenkinsEvent(jsonColor));
@@ -64,11 +61,11 @@ public class XfRunListener extends RunListener<AbstractBuild> {
 
     @Override
     public void onStarted(AbstractBuild run, TaskListener listener) {
-        Lamps plugin = Jenkins.getInstance().getPlugin(Lamps.class);
-        Set<String> jobs = plugin.getJobs();
+        Lamps plugin = Lamps.getInstance();
+        Set<String> jobs = LampProvider.getAllJobs();
 
         if (jobs.contains(run.getParent().getName())) {
-            Set<Lamp> activeLamps = plugin.getLampsContainingJob(run.getParent().getName());
+            Set<Lamp> activeLamps = LampProvider.getAllLampsContainingJob(run.getParent().getName());
             Run previousBuild = run.getPreviousBuild();
             if (previousBuild == null) {
                 for (Lamp lamp : activeLamps) {
